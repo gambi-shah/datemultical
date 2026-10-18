@@ -23,7 +23,7 @@
 %
 
 \ProvidesFile{datemultical-base.def}
-[2026/09/17 v0.1.0 Storage for named date data]
+[2026/10/18 v0.2.0 Storage for named date data]
 
 \ExplSyntaxOn
 
@@ -254,27 +254,6 @@
 
     \str_case:nnF { #3 }
     {
-      { year }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / year }
-      }
-
-      { month }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / month }
-      }
-
-      { day }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / day }
-      }
-
       { rd }
       {
         \prop_item:Nn
@@ -296,50 +275,12 @@
         { #2 }
       }
 
-      { week }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / week }
-      }
-
-      { leap }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / leap }
-      }
-
-      { leap_month }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / leap_month }
-      }
-
-      { leap_day }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / leap_day }
-      }
-
-      { major }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / major }
-      }
-
-      { cycle }
-      {
-        \prop_item:Nn
-        \g_dmc_date_prop
-        { #1 / #2 / cycle }
-      }
-
     }
-    { }
+    {
+      \prop_item:Nn
+      \g_dmc_date_prop
+      { #1 / #2 / #3 }
+    }
   }
 }
 

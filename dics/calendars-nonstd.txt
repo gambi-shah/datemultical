@@ -1,0 +1,25 @@
+Name                      Structure
+------------------------  -------------------------------------------------------------------------------------------------
+akan                      prefix, stem
+aztec-tonalpohualli       number, name
+aztec-xihuitl             month, day
+babylonian                year, month, leap, day
+bahai                     major, cycle, year, month, day
+bahai-astronomical        major, cycle, year, month, day
+balinese                  luang, dwiwara, triwara, caturwara, pancawara, sadwara, saptawara, asatawara, sangawara, dasawara
+chinese                   cycle, year, month, leap, day
+hindu-lunar               year, month, leap_month, day, leap_day
+hindu-lunar-astronomical  year, month, leap_month, day, leap_day
+icelandic                 year, season, week, weekday
+iso                       year, week, day
+japanese                  cycle, year, month, leap, day
+japanese-era              era, year, month, day
+korean                    year, month, leap, day
+mayan-haab                month, day
+mayan-long-count          baktun, katun, tun, uinal, kin
+mayan-tzolkin             number, name
+old-hindu-lunar           year, month, leap, day
+olympiad                  cycle, year, month, day
+roman                     year, month, event, count, leap
+tibetan                   year, month, leap_month, day, leap_day
+vietnamese                cycle, year, month, leap, day

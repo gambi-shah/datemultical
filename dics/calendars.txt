@@ -1,0 +1,67 @@
+Calendars ported from Calendrical Calculations (4th ed.).
+
+  Name                       Granularities                                                                                       Description
+  -------------------------- --------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------
+  akan                       prefix, stem                                                                                        The Akan adaduanan cycle of West Africa — a 42-day day-name calendar. Read-only.
+  armenian                   year, month, day                                                                                    The classical Armenian calendar, structurally identical to the 365-day Egyptian calendar.
+  auc                        year, month, day                                                                                    Ab Urbe Condita — Roman year numbering from the traditional founding of Rome (753 BCE), on the Julian calendar.
+  aztec-tonalpohualli        number, name                                                                                        The Aztec Tonalpohualli, the 260-day sacred count. Read-only.
+  aztec-xihuitl              month, day                                                                                          The Aztec Xihuitl, a 365-day solar cycle. Read-only.
+  babylonian                 year, month, leap, day                                                                              The Babylonian lunisolar calendar (astronomical reconstruction).
+  bahai                      major, cycle, year, month, day                                                                      The arithmetic Baháʼí (Badíʿ) calendar.
+  bahai-astronomical         major, cycle, year, month, day                                                                      The astronomical Baháʼí calendar, with Naw-Rúz fixed by the vernal equinox at Tehran.
+  balinese                   luang, dwiwara, triwara, caturwara, pancawara, sadwara, saptawara, asatawara, sangawara, dasawara   The Balinese Pawukon: ten concurrent week-cycles (weeks of 1 to 10 days). Read-only.
+  chinese                    cycle, year, month, leap, day                                                                       The traditional Chinese lunisolar calendar.
+  coptic                     year, month, day                                                                                    The Coptic (Alexandrian) calendar of the Coptic Orthodox Church.
+  egyptian                   year, month, day                                                                                    The ancient Egyptian civil calendar: twelve 30-day months plus five epagomenal days, with no leap year.
+  ethiopic                   year, month, day                                                                                    The Ethiopic calendar — the civil calendar of Ethiopia and the Ethiopian Orthodox Church.
+  french                     year, month, day                                                                                    The astronomical French Revolutionary calendar, with the year beginning at the autumn equinox in Paris.
+  french-arithmetic          year, month, day                                                                                    An arithmetic version of the French Revolutionary calendar using a fixed leap-year rule.
+  gregorian                  year, month, day                                                                                    The proleptic Gregorian calendar — the civil calendar in worldwide use, projected indefinitely in both directions.
+  hebrew                     year, month, day                                                                                    The traditional arithmetic Hebrew calendar.
+  hebrew-observational       year, month, day                                                                                    The observational Hebrew calendar, based on the visibility of the new moon.
+  hindu-lunar                year, month, leap_month, day, leap_day                                                              The modern Hindu lunisolar calendar (true positions).
+  hindu-lunar-astronomical   year, month, leap_month, day, leap_day                                                              The modern Hindu lunisolar calendar, astronomical variant.
+  hindu-solar                year, month, day                                                                                    The modern Hindu solar calendar (true solar longitude, Orissa rule).
+  hindu-solar-astronomical   year, month, day                                                                                    The modern Hindu solar calendar using the Tamil sunset rule.
+  icelandic                  year, season, week, weekday                                                                         The old Icelandic calendar: 52 or 53 seven-day weeks grouped into two seasons per year.
+  islamic                    year, month, day                                                                                    The tabular arithmetic Islamic (Hijri) calendar.
+  islamic-observational      year, month, day                                                                                    The observational Islamic calendar, with each month beginning at the predicted first sighting of the lunar crescent.
+  islamic-saudi              year, month, day                                                                                    An observational Islamic calendar modelling the Saudi crescent-visibility criterion at Mecca.
+  iso                        year, week, day                                                                                     ISO 8601 week date: ISO year, week number (1–53) and weekday (1 = Monday).
+  japanese                   cycle, year, month, leap, day                                                                       The traditional Japanese lunisolar calendar (of the Chinese type).
+  julian                     year, month, day                                                                                    The proleptic Julian calendar (the Roman reform of 45 BCE), projected indefinitely in both directions.
+  korean                     year, month, leap, day                                                                              The traditional Korean lunisolar calendar (of the Chinese type).
+  mayan-haab                 month, day                                                                                          The Maya Haab, a 365-day vague-solar cycle. Read-only: a Haab date alone does not fix a day.
+  mayan-long-count           baktun, katun, tun, uinal, kin                                                                      The Maya Long Count: a continuous day count in baktun, katun, tun, uinal and kin.
+  mayan-tzolkin              number, name                                                                                        The Maya Tzolkin, the 260-day sacred round. Read-only: a Tzolkin date alone does not fix a day.
+  old-hindu-lunar            year, month, leap, day                                                                              The Old Hindu lunisolar calendar, using mean motions.
+  old-hindu-solar            year, month, day                                                                                    The Old Hindu solar calendar, using the mean planetary motions of the Ārya-Siddhānta.
+  olympiad                   cycle, year, month, day                                                                             Greek Olympiad numbering — four-year cycles counted from 776 BCE, on the Julian calendar.
+  persian                    year, month, day                                                                                    The astronomical Persian (Solar Hijri) calendar, with the year beginning at the vernal equinox as seen from Tehran; the official calendar of Iran.
+  persian-arithmetic         year, month, day                                                                                    An arithmetic approximation of the Persian calendar using a fixed leap-year rule.
+  roman                      year, month, event, count, leap                                                                     Roman dating by kalends, nones and ides on the Julian calendar.
+  samaritan                  year, month, day                                                                                    The Samaritan observational calendar.
+  tibetan                    year, month, leap_month, day, leap_day                                                              The Tibetan (Phukpa) lunisolar calendar.
+  vietnamese                 cycle, year, month, leap, day                                                                       The traditional Vietnamese lunisolar calendar (of the Chinese type).
+
+Additional calendars
+
+Calendars not defined in the book; each links to its published source.
+
+  Name               Granularities           Description
+  ------------------ ----------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  amazigh            year, month, day        The Amazigh (Berber) agrarian calendar of North Africa: the Julian calendar with years offset by 950. Yennayer, its new year, is a public holiday in Algeria and Morocco. See the Berber calendar.
+  bengali-revised    year, month, day        The revised Bengali calendar of Bangladesh, standardised by the Bangla Academy (2019), with fixed month lengths pinned to the Gregorian year (Pohela Boishakh on 14 April). See Bengali calendars.
+  hebrew-civil       year, month, day        The arithmetic Hebrew calendar with CLDR's month numbers: Tishri is 1 and Elul 13; Adar I is 6 (only in a leap year), Adar 7 (Adar II in a leap year).
+  indian-national    year, month, day        India's official civil calendar — the reformed Śaka calendar defined by the Calendar Reform Committee (1955) and adopted in 1957. See the Indian national calendar.
+  islamic-diyanet    year, month, day        The authoritative calendar of the Turkish Diyanet İşleri Başkanlığı (Türkiye Takvimi), from a published table of lunation starts spanning roughly 1900–2027 CE. See R. H. van Gent, The Islamic calendar of Turkey.
+  islamic-tbla       year, month, day        The tabular Islamic calendar with the astronomical (Thursday) epoch — the islamic-tbla variant of Unicode CLDR/ICU. Same arithmetic as the civil tabular calendar, but with the epoch one day earlier. Verified against ICU 77.1. See the Tabular Islamic calendar.
+  islamic-turkish    year, month, day        A computed model of the calendar of the Turkish Diyanet İşleri Başkanlığı, using the criterion in force since AH 1436 (2016): a month begins the day after, at Ankara, the conjunction precedes sunset and the moon sets after the sun. An approximation of the published Türkiye Takvimi. See R. H. van Gent, The Islamic calendar of Turkey (astronomical rules).
+  islamic-umalqura   year, month, day        The Umm al-Qura calendar of Saudi Arabia, from the published KACST month-length table (as bundled by ICU), covering AH 1300–1600. Verified against ICU 77.1. See R. H. van Gent, The Umm al-Qura calendar of Saudi Arabia.
+  japanese-era       era, year, month, day   The modern Japanese era (nengō / wareki) calendar: Gregorian dates with years counted within the reigning emperor's era (Meiji onward), matching Unicode CLDR/ICU. See Japanese era name.
+  nanakshahi         year, month, day        The Sikh Nanakshahi calendar designed by Pal Singh Purewal and adopted in 2003 — a tropical solar calendar with month starts fixed to Gregorian dates (Chet 1 on 14 March). See the Nanakshahi calendar.
+  roc                year, month, day        The Minguo, or Republic of China, calendar used in Taiwan: the Gregorian calendar with years counted from the founding of the Republic in 1912. See the Republic of China calendar.
+  thai-solar         year, month, day        Thailand's official Suriyakati calendar: the Gregorian calendar with years in the Buddhist Era (Gregorian + 543), since the 1941 reform. See the Thai solar calendar.
+
+generated by LDoc 1.5.0 Last updated 2026-10-13 06:46:32

@@ -1,85 +1,75 @@
-# The `datemultical` package
+LaTeX Package: DateMultiCal 2026-10-18 v0.2.0
+----------------------------------------
+
 
 Named dates and multi-calendar date formatting for LaTeX.
 
 ## Description
 
-The `datemultical` package provides a unified interface for defining,
-converting, and formatting dates in LaTeX documents.
+`datemultical` provides a unified interface for defining, converting, and
+formatting named dates in LaTeX documents.
 
-It provides two calculation backends:
+It provides two backends:
 
-- `basic`: the built-in backend, available under all supported engines,
-  with support for the three core calendars: Gregorian, Solar Hijri,
-  and Lunar Hijri;
-- `lua`: the LuaLaTeX backend, which includes the same three core
-  calendars and additionally supports the calendar systems provided by
-  `lua-calendrica`.
+- `basic`: supports the Gregorian, Solar Hijri, and Lunar Hijri calendars
+  under all supported engines, with English names and optional Persian
+  localization;
+- `lua`: selected by default under LuaLaTeX. It supports all calendar
+  systems provided by `lua-calendrica`—currently 54, including the three
+  core calendars and historical and astronomical calendars.
 
-When Persian localization is enabled, Persian month and weekday names are
-available where defined by the package.
-
-Under LuaLaTeX, the `lua` backend is selected by default. The `basic`
-backend can be selected with the `native` option.
+Newly added calendars become available automatically, without updating
+`datemultical`. The `basic` backend can be selected with the `native`
+option.
 
 ## Installation
 
-Manual installation from GitHub:
+### From CTAN
+
+https://ctan.org/pkg/datemultical
+
+~~~bash
+tlmgr install datemultical
+~~~
+
+### From GitHub
+
 ~~~bash
 git clone https://github.com/gambi-shah/datemultical.git
 ~~~
 
-Copy the package files (`.sty`, `.def`, and `.lua`) into a
-TeX-searchable directory. Alternatively, keep them in the same
-directory as your document.
-
-If necessary, refresh the TeX filename database:
-
-~~~bash
-mktexlsr
-~~~
+Copy the files into a TeX-searchable directory, or keep them beside your
+document. Run `mktexlsr` if necessary.
 
 ## Usage
-
-A minimal example:
 
 ~~~latex
 \documentclass{article}
 \usepackage{datemultical}
 
 \begin{document}
-
 \dmcset[sh]{birth}{1365}{3}{11}
-
 \dmc{birth}{short}
-
 \dmc[lh]{birth}{full}
-
 \end{document}
 ~~~
 
-Here, `birth` is defined once as a Solar Hijri date and can then be
-formatted in different styles and calendar systems.
+Use `\usepackage[persian]{datemultical}` for Persian localization and
+`\usepackage[native]{datemultical}` to select the basic backend under
+LuaLaTeX.
 
-To enable Persian localization:
+## Lua Backend
 
-~~~latex
-\usepackage[persian]{datemultical}
-~~~
-
-To select the basic backend explicitly under LuaLaTeX:
+Calendar-specific components can be defined with `\dmcnew`:
 
 ~~~latex
-\usepackage[native]{datemultical}
+\dmcnew[chinese]{birth}{cycle=78,year=3,month=4,leap=false,day=24}
 ~~~
-
 ## Documentation
-
-see the [main manual](doc/datemultical.pdf) for the complete documentation.
+See the [main manual](doc/datemultical.pdf) for configuration and examples.
 
 ## License and maintainer
 
-- License: LPPL 1.3c or later
-- Maintainer: Amer Amikhteh
-- Bug reports: please use the repository issue tracker
-
+- License: LPPL 1.3c or later.
+- Maintainer: Amer Amikhteh.
+- Report bugs via the [repository issue tracker](https://github.com/gambi-shah/datemultical/issues).

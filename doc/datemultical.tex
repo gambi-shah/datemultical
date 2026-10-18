@@ -1,3 +1,5 @@
+% !TeX program = lualatex
+
 \documentclass[10pt]{article}
 
 \usepackage{microtype}
@@ -7,7 +9,10 @@
 \usepackage{titlesec}
 \usepackage{minted}
 \usepackage{hologo}
+\usepackage{float}
 \usepackage{xltabular}
+
+
 \usepackage[persian]{datemultical}
 
 \usepackage[hidelinks]{hyperref}
@@ -58,413 +63,752 @@ bidi=basic
 
 \author{Amer Amikhteh}
 
-\makeatletter
-\dmcset{datemultical}{\dmc@year}{\dmc@month}{\dmc@day}
-\date{Version \dmc@version \\[2pt]
- \dmc{datemultical}{long}}
-\makeatother
+\usepackage{pkgmeta}
+\usepackage{datemultical}
+\dmcset{datemultical}{\pkgmeta[year]{datemultical}}{\pkgmeta[month]{datemultical}}{\pkgmeta[day]{datemultical}}
 
-\newcommand{\calentry}[2]{
-    \texttt{\detokenize{#1}}
-    & % #2
-    \dmc[#1]{birth}{short}
-    \\}
+\date{%
+    Version \pkgmeta[version]{datemultical}\\[2pt]
+    \dmc{datemultical}{long}
+}
+
+
+
+\newcounter{calentrycount}
+
+\newcommand{\calentry}[1]{%
+    \stepcounter{calentrycount}%
+    \thecalentrycount &
+    \texttt{\detokenize{#1}} &
+    \dmc[#1]{birth}{short}\\
+}
 
 \begin{document}
-    
-    \maketitle
-    \thispagestyle{empty}
-    
+
+\maketitle
+\thispagestyle{empty}
+
 \begin{abstract}
     The \pkg{datemultical} package provides a unified interface for defining,
-    converting, and formatting dates in \LaTeX{} documents. Its basic backend
-    implements three core calendars---Gregorian, Solar Hijri, and Lunar
-    Hijri---under all supported engines. This includes date conversion and formatting with English  month names and weekday names, while Persian names are available when Persian localization is enabled.
-    
-    Under \LuaLaTeXLogo{}, the Lua backend is selected by default. The Lua
-    backend is an extended implementation of the same core functionality: it
-    includes the three core calendars implemented by the basic backend and,
-    through \texttt{lua-calendrica}, supports 39 calendar systems in total,
-    including historical and astronomical calendars.
-    The basic backend
-    can be selected under \LuaLaTeXLogo{} with the \texttt{native} option.
-    This guide describes the package architecture, public API, calendar
-    identifiers, formatting patterns and styles, Persian date and weekday
-    wrappers, and Lua calendar support.
+    converting, and formatting named dates in \LaTeX{} documents. Its basic
+    backend supports the Gregorian, Solar Hijri, and Lunar Hijri calendars under
+    all supported engines, with English names and optional Persian localization.
+
+    Under \LuaLaTeXLogo{}, the Lua backend is selected by default. It supports
+    all calendar systems provided by \texttt{lua-calendrica}
+    (currently 54, including the three core calendars and a range of historical
+    and astronomical calendars). Newly added calendars become available
+    automatically, without updating \pkg{datemultical}; the basic backend can
+    be selected with the \texttt{native} option.
 \end{abstract}
 
- 
-   
-   
-   \section{Package Architecture and Backend Selection}
-   
-   \pkg{datemultical} provides two calculation backends. The basic backend is
-   the built-in implementation and supports the three core calendars---Gregorian,
-   Solar Hijri, and Lunar Hijri---under all supported engines. The Lua backend is
-   an extended implementation of this core functionality: it includes the same
-   three core calendars and additionally supports the calendar systems provided by
-   \texttt{lua-calendrica}.
-   
-    
-    \begin{table}[h!]
-        \caption{Backend Scope and Engine Availability}
-        \label{tab:backend-scope}
-        \centering\small
-        \begin{tabularx}{\textwidth}{@{}lYl@{}}
-            \toprule
-            \textbf{Backend} &
-            \textbf{Scope} &
-            \textbf{Engine availability} \\
-            \midrule
-            
-            \texttt{basic} &
-            Three core calendars: Gregorian, Solar Hijri, and Lunar Hijri &
-            All supported engines \\
-            
-            \texttt{lua} &
-            The three core calendars together with the additional calendar systems
-            provided by \texttt{lua-calendrica}
-             &
-            \LuaLaTeXLogo{} only \\
-            
-            \bottomrule
-        \end{tabularx}
-    \end{table}
-    
-    Under \LuaLaTeXLogo{}, the Lua backend is selected by default. The
-    \texttt{native} option selects the basic backend instead. Under non-Lua
-    engines, the basic backend is selected automatically.
-    
-    The package has two options:
-    
-    \begin{itemize}
-        \item \texttt{native}: selects the basic backend. It is particularly
-        relevant under \LuaLaTeXLogo{}, where the Lua backend would otherwise be
-        selected by default.
-        
-        \item \texttt{persian}: enables Persian-localization features. This option
-        is independent of backend selection.
-    \end{itemize}
-    
-    Thus, \texttt{native} is an option name, whereas \texttt{basic} and
-    \texttt{lua} are backend names. The Lua backend contains the core functionality
-    of the basic backend but is available only under \LuaLaTeXLogo{}.
-    
-    
-    
-   
-   
-   
-    
-    
-        \section{Core Calendar Identifiers}
-   \begin{table}[h!]
-       \caption{Core Calendar Identifiers and Lua Mappings}
-       \label{tab:core-calendars}
-       \vspace{2pt}
-       \centering\small
-       \begin{tabular}{llll}
-           \toprule
-           \textbf{Identifier (\textit{c})} &
-           \textbf{Calendar System} &
-           \textbf{Backend} &
-           \textbf{Lua Mapping} \\
-           \midrule
-           
-           \texttt{gr} &
-           Gregorian &
-           \texttt{basic} &
-           \texttt{gregorian} \\
-           
-           \texttt{sh} &
-           Solar Hijri &
-           \texttt{basic} &
-           \texttt{persian} \\
-           
-           \texttt{lh} &
-           Lunar Hijri &
-           \texttt{basic} &
-           \texttt{islamic\_tbla} \\
-           
-           \bottomrule
-       \end{tabular}
-   \end{table}
-   
-    
-   Beyond the three core identifiers, the Lua backend routes conversions through
-   the \texttt{lua-calendrica} modules, enabling access to numerous historical and
-   astronomical calendar systems under \LuaLaTeXLogo{}.
-   
-    
-    
-    
-    \section{Core Public API}
-    
-    \subsection{Argument Specifications}
-    \begin{table}[h!]
-        \caption{Standard Argument Specifications for Package Commands}
-        \label{tab:api-args}
-        \vspace{2pt}
-        \centering\small
-        \begin{tabular}{llll}
-            \toprule
-            \textbf{Arg} & \textbf{Type} & \textbf{Name} & \textbf{Description / Allowed Values} \\
-            \midrule
-            \texttt{c}   & string        & Calendar      & Calendar key (\texttt{gr}, \texttt{sh}, \texttt{lh}, \dots); optional, default: \texttt{gr}. \\
-            \texttt{n}   & string        & Name          & Unique identifier for the date instance (e.g., \texttt{birth}). \\
-            \texttt{y}   & integer       & Year          & Astronomical/civil year (e.g., \texttt{1365}). \\
-            \texttt{m}   & integer       & Month         & Month number (1--12). \\
-            \texttt{d}   & integer       & Day           & Day of the month (1--31). \\
-            \texttt{f}   & string        & Field         & Target property: \texttt{year}, \texttt{month}, \texttt{day}, \texttt{jdn}, \texttt{weekday}. \\
-            \texttt{p}   & string        & Pattern       & Format pattern string using defined tokens (e.g., \verb|yyyy-MM-dd|). \\
-            \texttt{s}   & string        & Style         & Registered style preset identifier (e.g., \texttt{full}, \texttt{short}, \texttt{ISOext}). \\
-            \bottomrule
-        \end{tabular}
-    \end{table}
-    
-    \subsection{Command Reference}
-    \begin{table}[h!]
-        \caption{Core Public Command Reference}
-        \label{tab:api-commands}
-        \vspace{2pt}
-        \centering\small
-        \begin{tabular}{l l l l}
-            \toprule
-            \textbf{Syntax} & \textbf{Function} & \textbf{Example} & \textbf{Output} \\
-            \midrule
-            \verb|\dmcset[c]{n}{y}{m}{d}| & Define date     & \verb|\dmcset[sh]{birth}{1365}{3}{11}| & \dmcset[sh]{birth}{1365}{3}{11} \\
-            \verb|\dmcget[c]{n}{f}|       & Get field        & \verb|\dmcget[gr]{birth}{year}|        & \dmcget[gr]{birth}{year} \\
-            \verb|\dmcformat[c]{n}{p}|    & Custom format    & \verb|\dmcformat[gr]{birth}{d~MMMM~y}| & \dmcformat[gr]{birth}{d~MMMM~y} \\
-            \verb|\dmcstyle{s}{p}|        & Register style   & \verb|\dmcstyle{iso}{yyyy-MM-dd}|      & \dmcstyle{iso}{yyyy-MM-dd} \\
-            \verb|\dmc[c]{n}{s}|          & Predefined style & \verb|\dmc[gr]{birth}{short}|          & \dmc[gr]{birth}{short} \\
-            \bottomrule
-        \end{tabular}
-    \end{table}
-    
 
-    \subsection{\texttt{dmcnew} command and keys}
-    
-    The command \verb|\dmcnew| is available only with Lua\LaTeX{}.
-    It creates and stores a named date using calendar-specific
-    key--value pairs.
-    
-    \begin{minted}{latex}
+
+
+
+
+
+\section{Package Architecture and Backend Selection}
+
+\pkg{datemultical} provides two calculation backends. The basic backend is
+the built-in implementation and supports the three core calendars---Gregorian,
+Solar Hijri, and Lunar Hijri---under all supported engines. The Lua backend is
+an extended implementation of this core functionality: it includes the same
+three core calendars and additionally supports the calendar systems provided by
+\texttt{lua-calendrica}.
+
+
+\begin{table}[h!]
+    \caption{Backend Scope and Engine Availability}
+    \label{tab:backend-scope}
+    \centering\small
+    \begin{tabularx}{\textwidth}{@{}lYl@{}}
+        \toprule
+        \textbf{Backend}                                              &
+        \textbf{Scope}                                                &
+        \textbf{Engine availability}                                    \\
+        \midrule
+
+        \texttt{basic}                                                &
+        Three core calendars: Gregorian, Solar Hijri, and Lunar Hijri &
+        All supported engines                                           \\
+
+        \texttt{lua}                                                  &
+        The three core calendars together with the additional calendar systems
+        provided by \texttt{lua-calendrica}
+                                                                      &
+        \LuaLaTeXLogo{} only                                            \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Under \LuaLaTeXLogo{}, the Lua backend is selected by default. The
+\texttt{native} option selects the basic backend instead. Under non-Lua
+engines, the basic backend is selected automatically.
+
+The package has two options:
+
+\begin{itemize}
+    \item \texttt{native}: selects the basic backend. It is particularly
+          relevant under \LuaLaTeXLogo{}, where the Lua backend would otherwise be
+          selected by default.
+
+    \item \texttt{persian}: enables Persian-localization features. This option
+          is independent of backend selection.
+\end{itemize}
+
+Thus, \texttt{native} is an option name, whereas \texttt{basic} and
+\texttt{lua} are backend names. The Lua backend contains the core functionality
+of the basic backend but is available only under \LuaLaTeXLogo{}.
+
+
+
+
+
+
+
+
+%\section{Core Calendar Identifiers}
+\begin{table}[h!]
+    \caption{Core Calendar Identifiers and Lua Mappings}
+    \label{tab:core-calendars}
+    \vspace{2pt}
+    \centering\small
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Identifier (\textit{c})} &
+        \textbf{Calendar System}         &
+        \textbf{Backend}                 &
+        \textbf{Lua Mapping}               \\
+        \midrule
+
+        \texttt{gr}                      &
+        Gregorian                        &
+        \texttt{basic}                   &
+        \texttt{gregorian}                 \\
+
+        \texttt{sh}                      &
+        Solar Hijri                      &
+        \texttt{basic}                   &
+        \texttt{persian}                   \\
+
+        \texttt{lh}                      &
+        Lunar Hijri                      &
+        \texttt{basic}                   &
+        \texttt{islamic-tbla}             \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+Beyond the three core identifiers, the Lua backend routes conversions through
+the \texttt{lua-calendrica} modules, enabling access to numerous historical and
+astronomical calendar systems under \LuaLaTeXLogo{}.
+
+
+
+
+\section{Core Public API}
+
+\subsection{Argument Specifications}
+\begin{table}[h!]
+    \caption{Standard Argument Specifications for Package Commands}
+    \label{tab:api-args}
+    \vspace{2pt}
+    \centering\small
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Arg} & \textbf{Type} & \textbf{Name} & \textbf{Description / Allowed Values}                                                         \\
+        \midrule
+        \texttt{c}   & string        & Calendar      & Calendar key (\texttt{gr}, \texttt{sh}, \texttt{lh}, \dots); optional, default: \texttt{gr}.  \\
+        \texttt{n}   & string        & Name          & Unique identifier for the date instance (e.g., \texttt{birth}).                               \\
+        \texttt{y}   & integer       & Year          & Astronomical/civil year (e.g., \texttt{1365}).                                                \\
+        \texttt{m}   & integer       & Month         & Month number (1--12).                                                                         \\
+        \texttt{d}   & integer       & Day           & Day of the month (1--31).                                                                     \\
+        \texttt{f}   & string        & Field         & Target property: \texttt{year}, \texttt{month}, \texttt{day}, \texttt{jdn}, \texttt{weekday}. \\
+        \texttt{p}   & string        & Pattern       & Format pattern string using defined tokens (e.g., \verb|yyyy-MM-dd|).                         \\
+        \texttt{s}   & string        & Style         & Registered style preset identifier (e.g., \texttt{full}, \texttt{short}, \texttt{ISOext}).    \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Command Reference}
+\begin{table}[H]
+    \caption{Core Public Command Reference}
+    \label{tab:api-commands}
+    \vspace{2pt}
+    \centering\scriptsize
+    \setlength{\tabcolsep}{2pt}
+    \begin{tabular}{@{}llll@{}}
+
+        \toprule
+        \textbf{Syntax}               & \textbf{Function} & \textbf{Example}                       & \textbf{Output}                 \\
+        \midrule
+        \verb|\dmcset[c]{n}{y}{m}{d}| & Define date       & \verb|\dmcset[sh]{birth}{1365}{3}{11}| & \dmcset[sh]{birth}{1365}{3}{11} \\
+        \verb|\dmcget[c]{n}{f}|       & Get field         & \verb|\dmcget[gr]{birth}{year}|        & \dmcget[gr]{birth}{year}        \\
+        \verb|\dmcformat[c]{n}{p}|    & Custom format     & \verb|\dmcformat[gr]{birth}{d~MMMM~y}| & \dmcformat[gr]{birth}{d~MMMM~y} \\
+        \verb|\dmcstyle{s}{p}|        & Register style    & \verb|\dmcstyle{iso}{yyyy-MM-dd}|      & \dmcstyle{iso}{yyyy-MM-dd}      \\
+        \verb|\dmc[c]{n}{s}|          & Predefined style  & \verb|\dmc[gr]{birth}{short}|          & \dmc[gr]{birth}{short}          \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\subsection{\texttt{dmcnew} command and keys}
+
+The command \verb|\dmcnew| is available only with Lua\LaTeX{}.
+It creates and stores a named date using calendar-specific
+key--value pairs.
+
+\begin{minted}{latex}
         \dmcnew[calendar]{name}{key=value,...}
     \end{minted}
-    
-    \begin{table}[h!]
-        \centering
-        \caption{Keys associated with \texttt{\textbackslash dmcnew}}
-        \label{tab:dmcnew-keys}
-        \begin{tabular}{llll}
-            \hline
-            \textbf{Key}         & \textbf{Value} & \textbf{Use}                  & \textbf{Backend} \\ \hline
-            \texttt{year}        & integer        & Calendar year                 & \texttt{basic}   \\
-            \texttt{month}       & integer        & Calendar month                & \texttt{basic}   \\
-            \texttt{day}         & integer        & Day of the month              & \texttt{basic}   \\
-            \texttt{weekday}     & integer        & Day of the week               & \texttt{basic}   \\
-            \texttt{jdn}         & integer        & Julian Day Number             & \texttt{basic}   \\
-            \texttt{rd}          & integer        & Rata Die                      & \texttt{basic}   \\
-            \texttt{week}        & integer        & Week number                   & \texttt{lua}     \\
-            \texttt{cycle}       & integer        & Calendar cycle                & \texttt{lua}     \\
-            \texttt{major}       & integer        & Calendar-specific major cycle & \texttt{lua}     \\ 
-            \texttt{leap}        & boolean        & Leap flag                     & \texttt{lua}     \\
-            \texttt{leap\_month} & boolean        & Leap-month flag               & \texttt{lua}     \\
-            \texttt{leap\_day}   & boolean        & Leap-day flag                 & \texttt{lua}     \\ \hline
-        \end{tabular}
-    \end{table}
-    
-    \textbf{Example:}\par
-    \verb|\dmcnew[chinese]{birth}{cycle=78,year=3,month=4,leap=false,day=24}|
-    
-    
-\section{Date Formatting}
 
-    \subsection{Format Pattern Tokens}
-    
-    Standard formatting tokens (following Unicode Technical Standard \#35 conventions) supported by \verb|\dmcformat| and \verb|\dmcstyle|:
-    
-    \begin{itemize}
-        \item \textbf{Year}: \texttt{yyyy} (full 4-digit year), \texttt{yy} (2-digit year), \texttt{y} (numeric year).
-        
-        \item \textbf{Month}: \texttt{MM} (2-digit zero-padded), \texttt{M} (numeric), 
-        \texttt{MMM} (abbreviated), \texttt{MMMM} (full), \texttt{MMMMP} (localized Persian month name).
-        
-        \item \textbf{Day}: \texttt{dd} (2-digit zero-padded), \texttt{d} (numeric).
-        
-        \item \textbf{Weekday}: \texttt{EEEE} (full weekday name), \texttt{EEE} (abbreviated),
-        \texttt{EEEEP} (localized Persian weekday).
-        
-        \item \textbf{Week}: \texttt{ww} (2-digit zero-padded week), \texttt{w} (numeric week).
-        
-        \item \textbf{Continuum Cycle}: \texttt{U} (cycle within major era).
-        
-        \item \textbf{Major Cycle}: \texttt{R} (major cycle/era identifier).
-        
-         \item \textbf{Leap information}:
-        \texttt{l}/\texttt{lm}/\texttt{ld} refer to
-        \texttt{leap}/\texttt{leap\_month}/\texttt{leap\_day};
-        the suffix \texttt{i} returns the Boolean value as \texttt{1} or
-        \texttt{0}.
-    \end{itemize}
-    
-    All tokens are replaced intelligently and only if they are defined in the target calendar. 
-    Unrecognized tokens are left unchanged.
-        \subsection{Predefined Style Presets}
-    The package provides standard presets out of the box (evaluated below for \texttt{birth} in \texttt{gr}):
-    
-    \begin{table}[h!]
-        \caption{Standard Style Presets and Evaluated Outputs}
-        \label{tab:style-presets}
-        \vspace{2pt}
-        \centering\small
-        \begin{tabular}{llll}
-            \toprule
-            \textbf{Style} & \textbf{Pattern} & \textbf{Invocation Example} & \textbf{Evaluated Output} \\
-            \midrule
-            \texttt{full}          & \verb|EEEE,~MMMM~d,~y| & \verb|\dmc{birth}{full}|          & \dmc{birth}{full} \\
-            \texttt{long}          & \verb|MMMM~d,~y|       & \verb|\dmc{birth}{long}|          & \dmc{birth}{long} \\
-            \texttt{medium}        & \verb|MMM~d,~y|        & \verb|\dmc{birth}{medium}|        & \dmc{birth}{medium} \\
-            \texttt{short}         & \verb|yy/MM/dd|        & \verb|\dmc{birth}{short}|         & \dmc{birth}{short} \\
-            \texttt{short-use}     & \verb|M/d/yy|          & \verb|\dmc{birth}{short-use}|     & \dmc{birth}{short-use} \\
-            \texttt{ISO}           & \verb|yyMMdd|          & \verb|\dmc{birth}{ISO}|           & \dmc{birth}{ISO} \\
-            \texttt{ISOext}        & \verb|yy-MM-dd|        & \verb|\dmc{birth}{ISOext}|        & \dmc{birth}{ISOext} \\
-            \texttt{american}      & \verb|MMMM~dd,~yy|     & \verb|\dmc{birth}{american}|      & \dmc{birth}{american} \\
-            \texttt{shamerican}    & \verb|MM/dd/yy|        & \verb|\dmc{birth}{shamerican}|    & \dmc{birth}{shamerican} \\
-            \texttt{british}       & \verb|dd~MMMM~yy|      & \verb|\dmc{birth}{british}|       & \dmc{birth}{british} \\
-            \texttt{shbritish}     & \verb|dd/MM/yy|        & \verb|\dmc{birth}{shbritish}|     & \dmc{birth}{shbritish} \\
-            \texttt{shbritishdots} & \verb|dd.MM.yy|        & \verb|\dmc{birth}{shbritishdots}| & \dmc{birth}{shbritishdots} \\
-            \bottomrule
-        \end{tabular}
-    \end{table}
-    
-    Existing styles can be overridden at any point by simply redefining them with the same command and new pattern. The package uses a direct property-list replacement mechanism, so no error occurs and the change applies globally. Example:
-    
-    \verb|\dmcstyle{full}{EEE,~MMMM~d,~y}|
-    
-        \subsection{Persian Date Wrappers}
-    Pre-configured high-level macros provide convenient date rendering with appropriate text directionality:
-    
-    \begin{table}[h!]
-        \caption{High-Level Directional Formatting Wrappers}
-        \label{tab:persian-wrappers}
-        \vspace{2pt}
-        \centering\small
-        \begin{tabular}{lllll}
-            \toprule
-            \textbf{Macro Command}     & \textbf{\texttt{c}} &
-            \textbf{Effective Pattern} & \textbf{Language}  & \textbf{Output}         \\
-            \midrule
-            \verb|\Miladi{n}|          & \texttt{gr}  &
-            \verb|MMMM~d,~y|           & English          &\Miladi{birth}              \\
-            \verb|\Shamsi{n}|          & \texttt{sh}    &
-            \verb|d~MMMMP~y|           & Persian &\foreignlanguage{persian}{\Shamsi{birth}}                       \\
-            
-            \verb|\Ghamari{n}|          & \texttt{lh}    &
-            \verb|d~MMMMP~y|           & Persian &\foreignlanguage{persian}{\Ghamari{birth}}                       \\
-            
-            \verb|\ShortMiladi{n}|     & \texttt{gr}  &
-            \verb|yy/MM/dd|            & English &\ShortMiladi{birth}                      \\
-            \verb|\ShortShamsi{n}|     & \texttt{sh}    &
-            \verb|yy/MM/dd|            & Persian             &\foreignlanguage{persian}{\ShortShamsi{birth}}           \\
-            \verb|\ShortGhamari{n}|     & \texttt{lh}    &
-            \verb|yy/MM/dd|            & Persian             &\foreignlanguage{persian}{\ShortGhamari{birth}}           \\
-            \verb|\FaMiladi{n}|        & \texttt{gr}  &
-            \verb|d~MMMMP~y|           & Persian          &\foreignlanguage{persian}{\FaMiladi{birth}}                \\
-            \verb|\Persianweekday{n}|        & \texttt{sh}  &
-            \verb|d~EEEEP~y|           & Persian      &\foreignlanguage{persian}{\Persianweekday{birth}}                   \\
-            \bottomrule
-        \end{tabular}
-    \end{table}
-    
-    When using \texttt{xepersian} or \texttt{unipersian}, directional switching (\verb|\rl| / \verb|\lr|) is handled automatically by the respective package. \texttt{datemultical} only provides high-level formatting wrappers that are fully compatible with these packages.
-    
-    
-    
-    
-        \section{Lua Calendar Reference}
-    Under \LuaLaTeXLogo{}, \pkg{datemultical} interfaces with \texttt{lua-calendrica}
-    (based on Reingold \& Dershowitz, \textit{Calendrical Calculations}). Below is the mapping
-    of supported calendar modules, engine keys (\textit{c}), and aliases:
-    
-    \begin{xltabular}{0.7\linewidth}{lY}
-    
+
+
+
+\begin{xltabular}{\linewidth}{l l X l}
+     \caption{Keys associated with \texttt{\textbackslash dmcnew}}
+    \label{tab:dmcnew-keys}\\
     \hline
-    \textbf{Identifier (\textit{c})} & \textbf{Output} \\
+    \textbf{Key} & \textbf{Value} & \textbf{Definition} & \textbf{Backend} \\
     \hline
     \endfirsthead
-    
+
     \hline
-    \textbf{Identifier (\textit{c})} & \textbf{Output} \\
+    \textbf{Key} & \textbf{Value} & \textbf{Definition} & \textbf{Backend} \\
     \hline
     \endhead
-    
+
     \hline
-    \multicolumn{2}{r}{Continued on the next page} \\
+    \multicolumn{4}{r}{Continued on the next page} \\
     \endfoot
-    
+
     \hline
     \endlastfoot
-    
-    \calentry{armenian}{Armenian calendar (structurally identical to Egyptian).}
-    \calentry{auc}{Ab Urbe Condita (AUC) year numbering on the Julian calendar.}
-    \calentry{aztec_xihuitl}{Aztec Xihuitl calendar (read-only).}
-    \calentry{babylonian}{Babylonian calendar (astronomical).}
-    \calentry{bahai}{Arithmetic Bahá'í calendar.}
-    \calentry{bahai_astronomical}{Astronomical Bahá'í calendar.}
-    \calentry{chinese}{Chinese calendar.}
-    \calentry{coptic}{Coptic calendar.}
-    \calentry{egyptian}{Ancient Egyptian calendar.}
-    \calentry{ethiopic}{Ethiopic calendar.}
-    \calentry{french}{Astronomical French Revolutionary calendar.}
-    \calentry{french_arithmetic}{Arithmetic French Revolutionary calendar.}
-    \calentry{gregorian}{Proleptic Gregorian calendar.}
-    \calentry{hebrew}{Arithmetic Hebrew calendar.}
-    \calentry{hebrew_observational}{Observational Hebrew calendar (astronomical).}
-    \calentry{hindu_lunar}{Modern Hindu lunar calendar.}
-    \calentry{hindu_lunar_astronomical}{Astronomical Hindu lunar calendar.}
-    \calentry{hindu_solar}{Modern Hindu solar calendar (Orissa rule).}
-    \calentry{hindu_solar_astronomical}{Astronomical Hindu solar calendar (Tamil rule).}
-    \calentry{islamic}{Arithmetic Islamic (Hijri) calendar.}
-    \calentry{islamic_observational}{Observational Islamic calendar (astronomical).}
-    \calentry{islamic_saudi}{Observational Saudi Islamic calendar.}
-    \calentry{islamic_tbla}{Saudi Islamic calendar (Umm al-Qura approximation).}
-    \calentry{islamic_turkish}{Turkish Islamic calendar (Diyanet crescent visibility from Ankara).}
-    \calentry{islamic_umalqura}{Umm al-Qura Islamic calendar.}
-    \calentry{islamic_umalqura_astronomical}{Astronomical Umm al-Qura calendar (conjunction before Mecca sunset).}
-    \calentry{iso}{ISO week-date calendar.}
-    \calentry{japanese}{Japanese lunisolar calendar.}
-    \calentry{julian}{Proleptic Julian calendar.}
-    \calentry{korean}{Korean lunisolar calendar.}
-    \calentry{mayan_haab}{Mayan Haab calendar (read-only).}
-    \calentry{old_hindu_lunar}{Old Hindu lunar calendar (Arya Siddhanta).}
-    \calentry{old_hindu_solar}{Old Hindu solar calendar (Arya Siddhanta).}
-    \calentry{olympiad}{Greek Olympiad numbering on the Julian calendar.}
-    \calentry{persian}{Astronomical Persian calendar.}
-    \calentry{persian_arithmetic}{Arithmetic Persian calendar.}
-    \calentry{samaritan}{Samaritan calendar.}
-    \calentry{tibetan}{Tibetan calendar.}
-    \calentry{vietnamese}{Vietnamese lunisolar calendar.}
+
+    \multicolumn{4}{l}{\textit{Basic date components}} \\
+    \hline
+
+    year
+    & integer
+    & Year within the calendar.
+    & basic \\
+
+    month
+    & integer
+    & Month within the year or calendar cycle.
+    & basic \\
+
+    day
+    & integer
+    & Day within the month or calendar cycle.
+    & basic \\
+
+    \hline
+    \multicolumn{4}{l}{\textit{Derived date properties}} \\
+    \hline
+
+    weekday
+    & integer
+    & Number of the weekday of the date.
+    & basic \\
+
+    jdn
+    & integer
+    & Absolute day number in the Julian Day system.
+    & basic \\
+
+    rd
+    & integer
+    & Absolute day number in the Rata Die system.
+    & basic \\
+
+    \hline
+    \multicolumn{4}{l}{\textit{Calendar cycle components}} \\
+    \hline
+
+    cycle
+    & integer
+    & Number of the calendar's repeating cycle.
+    & lua \\
+
+    week
+    & integer
+    & Week number within the calendar year or season.
+    & lua \\
+
+    major
+    & integer
+    & Number of the larger cycle containing the calendar year.
+    & lua \\
+
+    \hline
+    \multicolumn{4}{l}{\textit{Intercalary date components}} \\
+    \hline
+
+    leap
+    & boolean
+    & Whether the date belongs to a leap year.
+    & lua \\
+
+    leap\_month
+    & boolean
+    & Whether the date belongs to an intercalary month.
+    & lua \\
+
+    leap\_day
+    & boolean
+    & Whether the date is an intercalary day.
+    & lua \\
+
+
+    \hline
+    \multicolumn{4}{l}{\textit{Calendar-specific components}} \\
+    \hline
+
+    era
+    & string
+    & Era in which the date occurs.
+    & lua \\
+
+    season
+    & string
+    & Season containing the date.
+    & lua \\
+
+    event
+    & string
+    & Named calendrical event associated with the date.
+    & lua \\
+
+    count
+    & integer
+    & Day count relative to the named calendrical event.
+    & lua \\
+
+    prefix
+    & string
+    & Prefix of an Akan day name.
+    & lua \\
+
+    stem
+    & string
+    & Stem of an Akan day name.
+    & lua \\
+
+    number
+    & integer
+    & Number in a named sacred day cycle.
+    & lua \\
+
+    name
+    & string
+    & Name in a named sacred day cycle.
+    & lua \\
+
+    \hline
+    \multicolumn{4}{l}{\textit{Maya Long Count components}} \\
+    \hline
+
+    baktun
+    & integer
+    & Baktun position in the Long Count.
+    & lua \\
+
+    katun
+    & integer
+    & Katun position in the Long Count.
+    & lua \\
+
+    tun
+    & integer
+    & Tun position in the Long Count.
+    & lua \\
+
+    uinal
+    & integer
+    & Uinal position in the Long Count.
+    & lua \\
+
+    kin
+    & integer
+    & Kin position in the Long Count.
+    & lua \\
+
+    \hline
+    \multicolumn{4}{l}{\textit{Balinese Pawukon components}} \\
+    \hline
+
+    luang
+    & boolean
+    & Whether the date has the luang designation.
+    & lua \\
+
+    dwiwara
+    & integer
+    & Position in the two-day Pawukon cycle.
+    & lua \\
+
+    triwara
+    & integer
+    & Position in the three-day Pawukon cycle.
+    & lua \\
+
+    caturwara
+    & integer
+    & Position in the four-day Pawukon cycle.
+    & lua \\
+
+    pancawara
+    & integer
+    & Position in the five-day Pawukon cycle.
+    & lua \\
+
+    sadwara
+    & integer
+    & Position in the six-day Pawukon cycle.
+    & lua \\
+
+    saptawara
+    & integer
+    & Position in the seven-day Pawukon cycle.
+    & lua \\
+
+    asatawara
+    & integer
+    & Position in the eight-day Pawukon cycle.
+    & lua \\
+
+    sangawara
+    & integer
+    & Position in the nine-day Pawukon cycle.
+    & lua \\
+
+    dasawara
+    & integer
+    & Position in the ten-day Pawukon cycle.
+    & lua \\
+
 \end{xltabular}
 
-    
-    
-    \noindent\textbf{Auxiliary Modules:} In addition to the conversion modules above, \texttt{lua-calendrica} includes core utilities for astronomical computations, general calendrical arithmetic, and ecclesiastical feast calculations.
-    
-    
-    \section{Current Limitations and Possible Directions}
-    The following items are possible directions rather than committed development plans.
-    
-    \begin{itemize}
-        \item Localization is currently available only in Persian. Support for additional
-        languages could be considered if future work on the package is undertaken.
-        
-        \item Closer coordination with \texttt{lua-calendrica} could provide access to
-        additional calendar systems and make better use of the capabilities offered by
-        that package.
-        
-        \item Improved interoperability with other date-related \TeX{} packages, such as
-        \texttt{datetime2}, could be another useful direction.
-    \end{itemize}
-    
+
+
+
+\textbf{Example 1: Chinese calendar}\par
+
+\begin{minted}{latex}
+    \dmcnew[chinese]{birth}{
+        cycle=78,year=3,month=4,leap=false,day=24}
+\end{minted}
+
+This example defines a date in the traditional Chinese lunisolar
+calendar.  The year is specified as year 3 of cycle 78, and the
+date falls on day 24 of month 4.  The Boolean key \texttt{leap}
+indicates whether the month is intercalary.
+
+\textbf{Example 2: Hindu lunar calendar}\par
+
+\begin{minted}{latex}
+    \dmcnew[hindu-lunar]{birth}{
+        year=2043, month=2, leap_month=false, day=24, leap_day=false}
+\end{minted}
+
+This example defines a date in the modern Hindu lunisolar calendar.
+In addition to the year, month, and day, it uses the
+\texttt{leap\_month} and \texttt{leap\_day} keys.  These Boolean
+keys indicate whether the month or the day is intercalary,
+respectively.
+
+
+
+
+
+
+
+
+\section{Date Formatting}
+
+\subsection{Format Pattern Tokens}
+
+The following format tokens are supported by
+\verb|\dmcformat| and \verb|\dmcstyle|:
+
+\begin{itemize}
+
+    \item \textbf{Year}:
+          \texttt{yyyy} (four-digit year),
+          \texttt{yy} (two-digit year),
+          \texttt{y} (numeric year).
+
+    \item \textbf{Month}:
+          \texttt{MMMM} (full name),
+          \texttt{MMM} (abbreviated name),
+          \texttt{MMMMP} (Persian name),
+          \texttt{MM} (two-digit number),
+          \texttt{M} (numeric month).
+
+    \item \textbf{Day}:
+          \texttt{dd} (two-digit number),
+          \texttt{d} (numeric day).
+
+    \item \textbf{Weekday}:
+          \texttt{EEEE} (full name),
+          \texttt{EEE} (abbreviated name),
+          \texttt{EEEEP} (Persian name),
+          \texttt{u} (numeric weekday).
+
+    \item \textbf{Week}:
+          \texttt{ww} (two-digit week),
+          \texttt{w} (numeric week).
+
+    \item \textbf{Calendar cycles}:
+          \texttt{U} (cycle number),
+          \texttt{R} (major cycle number).
+
+    \item \textbf{Leap values}:
+          \texttt{l} (leap year),
+          \texttt{li} (leap-year flag),
+          \texttt{lm} (leap month),
+          \texttt{lmi} (leap-month flag),
+          \texttt{ld} (leap day),
+          \texttt{ldi} (leap-day flag),
+          \texttt{lu} (luang),
+          \texttt{lui} (luang flag).
+
+          The tokens \texttt{li}, \texttt{lmi}, \texttt{ldi}, and
+          \texttt{lui} convert the corresponding Boolean value to
+          \texttt{1} or \texttt{0}.
+
+    \item \textbf{Calendar properties}:
+          \texttt{S} (season),
+          \texttt{G} (era),
+          \texttt{Gi} (numeric era identifier),
+          \texttt{E} (event),
+          \texttt{C} (event count).
+
+    \item \textbf{Named calendar values}:
+          \texttt{N} (name),
+          \texttt{n} (number),
+          \texttt{p} (prefix),
+          \texttt{s} (stem).
+
+    \item \textbf{Maya Long Count}:
+          \texttt{bt} (baktun),
+          \texttt{ka} (katun),
+          \texttt{tn} (tun),
+          \texttt{ui} (uinal),
+          \texttt{ki} (kin).
+
+    \item \textbf{Balinese Pawukon cycles}:
+          \texttt{di} (dwiwara),
+          \texttt{tr} (triwara),
+          \texttt{cw} (caturwara),
+          \texttt{pw} (pancawara),
+          \texttt{sw} (sadwara),
+          \texttt{sp} (saptawara),
+          \texttt{aw} (asatawara),
+          \texttt{sg} (sangawara),
+          \texttt{da} (dasawara).
+
+\end{itemize}
+
+
+
+
+Tokens are replaced only when the corresponding value is defined for the
+target calendar. Unrecognized tokens remain unchanged.
+
+\subsection{Predefined Style Presets}
+The package provides standard presets out of the box (evaluated below for \texttt{birth} in \texttt{gr}):
+
+\begin{table}[H]
+    \caption{Standard Style Presets and Evaluated Outputs}
+    \label{tab:style-presets}
+    \vspace{2pt}
+    \centering\small
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Style}         & \textbf{Pattern}       & \textbf{Invocation Example}       & \textbf{Evaluated Output}  \\
+        \midrule
+        \texttt{full}          & \verb|EEEE,~MMMM~d,~y| & \verb|\dmc{birth}{full}|          & \dmc{birth}{full}          \\
+        \texttt{long}          & \verb|MMMM~d,~y|       & \verb|\dmc{birth}{long}|          & \dmc{birth}{long}          \\
+        \texttt{medium}        & \verb|MMM~d,~y|        & \verb|\dmc{birth}{medium}|        & \dmc{birth}{medium}        \\
+        \texttt{short}         & \verb|yy/MM/dd|        & \verb|\dmc{birth}{short}|         & \dmc{birth}{short}         \\
+        \texttt{short-use}     & \verb|M/d/yy|          & \verb|\dmc{birth}{short-use}|     & \dmc{birth}{short-use}     \\
+        \texttt{ISO}           & \verb|yyMMdd|          & \verb|\dmc{birth}{ISO}|           & \dmc{birth}{ISO}           \\
+        \texttt{ISOext}        & \verb|yy-MM-dd|        & \verb|\dmc{birth}{ISOext}|        & \dmc{birth}{ISOext}        \\
+        \texttt{american}      & \verb|MMMM~dd,~yy|     & \verb|\dmc{birth}{american}|      & \dmc{birth}{american}      \\
+        \texttt{shamerican}    & \verb|MM/dd/yy|        & \verb|\dmc{birth}{shamerican}|    & \dmc{birth}{shamerican}    \\
+        \texttt{british}       & \verb|dd~MMMM~yy|      & \verb|\dmc{birth}{british}|       & \dmc{birth}{british}       \\
+        \texttt{shbritish}     & \verb|dd/MM/yy|        & \verb|\dmc{birth}{shbritish}|     & \dmc{birth}{shbritish}     \\
+        \texttt{shbritishdots} & \verb|dd.MM.yy|        & \verb|\dmc{birth}{shbritishdots}| & \dmc{birth}{shbritishdots} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Existing styles can be overridden at any point by simply redefining them with the same command and new pattern. The package uses a direct property-list replacement mechanism, so no error occurs and the change applies globally. Example:
+
+\begin{minted}{latex}
+    \dmcstyle{full}{EEE,~MMMM~d,~y}
+\end{minted}
+
+\subsection{Persian Date Wrappers}
+Pre-configured high-level macros provide convenient date rendering with appropriate text directionality:
+
+\begin{table}[H]
+    \caption{High-Level Directional Formatting Wrappers}
+    \label{tab:persian-wrappers}
+    \vspace{2pt}
+    \centering\small
+    \begin{tabular}{lllll}
+        \toprule
+        \textbf{Macro Command}     & \textbf{\texttt{c}} &
+        \textbf{Effective Pattern} & \textbf{Language}   & \textbf{Output}                                   \\
+        \midrule
+        \verb|\Miladi{n}|          & \texttt{gr}         &
+        \verb|MMMM~d,~y|           & English             & \Miladi{birth}                                    \\
+        \verb|\Shamsi{n}|          & \texttt{sh}         &
+        \verb|d~MMMMP~y|           & Persian             & \foreignlanguage{persian}{\Shamsi{birth}}         \\
+
+        \verb|\Ghamari{n}|         & \texttt{lh}         &
+        \verb|d~MMMMP~y|           & Persian             & \foreignlanguage{persian}{\Ghamari{birth}}        \\
+
+        \verb|\ShortMiladi{n}|     & \texttt{gr}         &
+        \verb|yy/MM/dd|            & English             & \ShortMiladi{birth}                               \\
+        \verb|\ShortShamsi{n}|     & \texttt{sh}         &
+        \verb|yy/MM/dd|            & Persian             & \foreignlanguage{persian}{\ShortShamsi{birth}}    \\
+        \verb|\ShortGhamari{n}|    & \texttt{lh}         &
+        \verb|yy/MM/dd|            & Persian             & \foreignlanguage{persian}{\ShortGhamari{birth}}   \\
+        \verb|\FaMiladi{n}|        & \texttt{gr}         &
+        \verb|d~MMMMP~y|           & Persian             & \foreignlanguage{persian}{\FaMiladi{birth}}       \\
+        \verb|\Persianweekday{n}|  & \texttt{sh}         &
+        \verb|d~EEEEP~y|           & Persian             & \foreignlanguage{persian}{\Persianweekday{birth}} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+When using \texttt{xepersian} or \texttt{unipersian}, directional switching (\verb|\rl| / \verb|\lr|) is handled automatically by the respective package. \texttt{datemultical} only provides high-level formatting wrappers that are fully compatible with these packages.
+
+
+
+
+\section{Lua Calendar Reference}
+Under LuaLaTeX, \texttt{datemultical} supports all 54 calendar modules
+provided by version~0.2 of \texttt{lua-calendrica}.
+The following table lists the calendar identifiers, engine keys
+(\textit{c}), and sample outputs.
+
+
+
+
+
+\begin{xltabular}{0.7\linewidth}{c l Y}
+    \caption{Lua Calendar Modules, Identifiers, and Sample Outputs}
+    \label{tab:lua-calendars} \\
+    \hline
+    \textbf{No.} & \textbf{Identifier (\textit{c})} & \textbf{Output} \\
+    \hline
+    \endfirsthead
+
+    \hline
+    \textbf{No.} & \textbf{Identifier (\textit{c})} & \textbf{Output} \\
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{3}{r}{Continued on the next page} \\
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+
+
+    \calentry{akan}%{prefix, stem}
+    \calentry{amazigh}
+    \calentry{armenian}
+    \calentry{auc}
+    \calentry{aztec-tonalpohualli}%{number, name}
+    \calentry{aztec-xihuitl}
+    \calentry{babylonian}
+    \calentry{bahai}
+    \calentry{bahai-astronomical}
+    \calentry{balinese}%{10 concurrent}
+    \calentry{bengali-revised}
+    \calentry{chinese}
+    \calentry{coptic}
+    \calentry{egyptian}
+    \calentry{ethiopic}
+    \calentry{french}
+    \calentry{french-arithmetic}
+    \calentry{gregorian}
+    \calentry{hebrew}
+    \calentry{hebrew-civil}
+    \calentry{hebrew-observational}
+    \calentry{hindu-lunar}
+    \calentry{hindu-lunar-astronomical}
+    \calentry{hindu-solar}
+    \calentry{hindu-solar-astronomical}
+    \calentry{icelandic}%{year, season, week, weekday}
+    \calentry{indian-national}
+    \calentry{islamic}
+    \calentry{islamic-diyanet}
+    \calentry{islamic-observational}
+    \calentry{islamic-saudi}
+    \calentry{islamic-tbla}
+    \calentry{islamic-turkish}
+    \calentry{islamic-umalqura}
+    \calentry{iso}
+    \calentry{japanese-era}%{era, year, month, day}
+    \calentry{japanese}
+    \calentry{julian}
+    \calentry{korean}
+    \calentry{mayan-long-count}%{baktun, katun, tun, uinal, kin}
+    \calentry{mayan-haab}
+    \calentry{mayan-tzolkin}%{number, name}
+    \calentry{old-hindu-lunar}
+    \calentry{old-hindu-solar}
+    \calentry{olympiad}
+    \calentry{persian-arithmetic}
+    \calentry{persian}
+    \calentry{roc}
+    \calentry{roman}%{year, month, event, count, leap}
+    \calentry{samaritan}
+    \calentry{thai-solar}
+    \calentry{tibetan}
+    \calentry{nanakshahi}
+    \calentry{vietnamese}
+
+
+\end{xltabular}
+
+
+
+\noindent\textbf{Auxiliary Modules:} In addition to the conversion modules above, \texttt{lua-calendrica} includes core utilities for astronomical computations, general calendrical arithmetic, and ecclesiastical feast calculations.
+
+
+For a complete description of the calendar modules provided by
+\texttt{lua-calendrica}, please consult the following documentation:
+
+\begin{center}
+    \url{https://polyglossia.codeberg.page/lua-calendrica/topics/calendars.md.html}
+\end{center}
+
+I am grateful to Udi Fogiel for developing and maintaining \texttt{lua-calendrica}, and for suggesting automatic calendar discovery.
+
+\section{Current Limitations and Possible Directions}
+The following items are possible directions rather than committed development plans.
+
+\begin{itemize}
+    \item Localization is currently available only in Persian. Support for additional
+          languages could be considered if future work on the package is undertaken.
+
+
+    \item Improved interoperability with other date-related \TeX{} packages, such as
+          \texttt{datetime2}, could be another useful direction.
+\end{itemize}
+
 \end{document}

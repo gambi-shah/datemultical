@@ -22,8 +22,8 @@
 --
 -- The current maintainer of this work is Amer Amikhteh.
 --
--- Version: 0.1.0
--- Date: 2026-09-17
+-- Version: 0.2.0
+-- Date: 2026-10-18
 
 local ok, calendrica = pcall(require, "calendrica")
 
@@ -45,58 +45,16 @@ end
 
 local calendars = {
   -- Primary aliases
-  gr = calendrica.cal_gregorian,
-  sh = calendrica.cal_persian,
-  lh = calendrica.cal_islamic_tbla,
-
-  -- Full names
-  gregorian = calendrica.cal_gregorian,
-  julian = calendrica.cal_julian,
-  roman = calendrica.cal_roman,
-  iso = calendrica.cal_iso,
-  egyptian = calendrica.cal_egyptian,
-  armenian = calendrica.cal_armenian,
-  coptic = calendrica.cal_coptic,
-  ethiopic = calendrica.cal_ethiopic,
-  islamic = calendrica.cal_islamic,
-  islamic_observational = calendrica.cal_islamic_observational,
-  islamic_tbla = calendrica.cal_islamic_tbla,
-  islamic_umalqura = calendrica.cal_islamic_umalqura,
-  islamic_saudi = calendrica.cal_islamic_saudi,
-  islamic_umalqura_astronomical = calendrica.cal_islamic_umalqura_astronomical,
-  islamic_turkish = calendrica.cal_islamic_turkish,
-  hebrew = calendrica.cal_hebrew,
-  hebrew_observational = calendrica.cal_hebrew_observational,
-  persian = calendrica.cal_persian,
-  persian_arithmetic = calendrica.cal_persian_arithmetic,
-  french = calendrica.cal_french,
-  french_arithmetic = calendrica.cal_french_arithmetic,
-  bahai = calendrica.cal_bahai,
-  bahai_astronomical = calendrica.cal_bahai_astronomical,
-  mayan_long_count = calendrica.cal_mayan_long_count,
-  mayan_haab = calendrica.cal_mayan_haab,
-  mayan_tzolkin = calendrica.cal_mayan_tzolkin,
-  aztec_xihuitl = calendrica.cal_aztec_xihuitl,
-  aztec_tonalpohualli = calendrica.cal_aztec_tonalpohualli,
-  balinese = calendrica.cal_balinese,
-  chinese = calendrica.cal_chinese,
-  japanese = calendrica.cal_japanese,
-  korean = calendrica.cal_korean,
-  vietnamese = calendrica.cal_vietnamese,
-  old_hindu_solar = calendrica.cal_old_hindu_solar,
-  old_hindu_lunar = calendrica.cal_old_hindu_lunar,
-  hindu_solar = calendrica.cal_hindu_solar,
-  hindu_solar_astronomical = calendrica.cal_hindu_solar_astronomical,
-  hindu_lunar = calendrica.cal_hindu_lunar,
-  hindu_lunar_astronomical = calendrica.cal_hindu_lunar_astronomical,
-  tibetan = calendrica.cal_tibetan,
-  icelandic = calendrica.cal_icelandic,
-  akan = calendrica.cal_akan,
-  auc = calendrica.cal_auc,
-  olympiad = calendrica.cal_olympiad,
-  samaritan = calendrica.cal_samaritan,
-  babylonian = calendrica.cal_babylonian,
+  gr = "gregorian",
+  sh = "persian",
+  lh = "islamic-tbla",
 }
+
+-- Full calendar names
+for _, name in ipairs(calendrica.calendars()) do
+  calendars[name] = name
+end
+
 
 -- =================================================
 -- Calendar lookup
@@ -123,7 +81,7 @@ end
 local function new_date(calendar, year, month, day)
   local cal = get_calendar(calendar)
 
-  return calendrica.new_date(
+  return calendrica.date(
     {
       year = tonumber(year),
       month = tonumber(month),
@@ -161,24 +119,55 @@ local function number_value(value)
   return tonumber(value)
 end
 
-local function normalize_fields(fields)
-  return {
-    major = number_value(fields.major),
-    cycle = number_value(fields.cycle),
-    year = number_value(fields.year),
-    month = number_value(fields.month),
-    week = number_value(fields.week),
-    day = number_value(fields.day),
-    leap = boolean_value(fields.leap),
-    leap_month = boolean_value(fields.leap_month),
-    leap_day = boolean_value(fields.leap_day),
-  }
+-- local function normalize_fields(fields)
+--   return {
+--     major = number_value(fields.major),
+--     cycle = number_value(fields.cycle),
+--     year = number_value(fields.year),
+--     month = number_value(fields.month),
+--     week = number_value(fields.week),
+--     day = number_value(fields.day),
+--     leap = boolean_value(fields.leap),
+--     leap_month = boolean_value(fields.leap_month),
+--     leap_day = boolean_value(fields.leap_day),
+--   }
+-- end
+
+local function normalize_value(value)
+  if value == nil or value == "" then
+    return nil
+  end
+
+  local boolean = boolean_value(value)
+
+  if type(boolean) == "boolean" then
+    return boolean
+  end
+
+  local number = tonumber(value)
+
+  if number ~= nil then
+    return number
+  end
+
+  return value
 end
+
+local function normalize_fields(fields)
+  local normalized = {}
+
+  for key, value in pairs(fields) do
+    normalized[key] = normalize_value(value)
+  end
+
+  return normalized
+end
+
 
 local function new_date_from_fields(calendar, fields)
   local cal = get_calendar(calendar)
   local normalized = normalize_fields(fields)
-  return calendrica.new_date(normalized, cal)
+  return calendrica.date(normalized, cal)
 end
 
 
@@ -188,7 +177,7 @@ end
 
 function M.fields_to_rd(calendar, fields)
   local date = new_date_from_fields(calendar, fields)
-  return date._rd
+  return date.rd
 end
 
 -- =================================================
@@ -253,7 +242,7 @@ end
 
 function M.date_to_rd(calendar, year, month, day)
   local date = new_date(calendar, year, month, day)
-  return date._rd
+  return date.rd
 end
 
 -- =================================================
@@ -262,7 +251,7 @@ end
 
 function M.rd_to_date(calendar, rd)
   local cal = get_calendar(calendar)
-  return cal.from_rd(tonumber(rd))
+  return calendrica.date(tonumber(rd), cal)
 end
 
 -- =================================================
@@ -278,11 +267,13 @@ function M.convert_all(calendar, year, month, day)
     result[name] = date
   end
 
-  result.jdn = rd
-  result.weekday = (rd + 0) % 7
+  result.rd = rd
+  result.jdn = rd + RD_TO_JDN
+  result.weekday = rd % 7
 
   return result
 end
+
 
 -- =================================================
 -- Store complete result in TeX
@@ -348,7 +339,7 @@ end
 function M.dateconvert(source, destination, year, month, day, part)
   local src = new_date(source, year, month, day)
   local dst = get_calendar(destination)
-  local result = calendrica.as_date(src, dst)
+  local result = src:to(dst)
 
   if part == "year" then
     tex.sprint(result.year)

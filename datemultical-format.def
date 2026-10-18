@@ -26,7 +26,7 @@
 \NeedsTeXFormat{LaTeX2e}
 
 \ProvidesFile{datemultical-format.def}
-[2026/09/17 v0.1.0 Multi-calendar date formatting]
+[2026/10/18 v0.2.0 Multi-calendar date formatting]
 
 
 \ExplSyntaxOn
@@ -186,6 +186,24 @@
 
 
 % =================================================
+% Japanese era formatting
+% =================================================
+
+\cs_new:Npn \dmc_format_japanese_era:n #1
+{
+    \exp_args:Nx \str_case:nnF {#1}
+    {
+        {meiji}  {1}
+        {taisho} {2}
+        {showa}  {3}
+        {heisei} {4}
+        {reiwa}  {5}
+    }
+    {#1}
+}
+
+
+% =================================================
 % Internal formatting command
 % =================================================
 
@@ -237,70 +255,252 @@
     { #3 }
 
     % =================================================
-    % Year
+    % Four-digit and two-digit year
     % =================================================
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {yyyy} {year} {\dmc_format_four_digits:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {yy} {year} {\dmc_format_two_digits:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {y} {year} {}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {yyyy} {year}
+    {\dmc_format_four_digits:n}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {yy} {year}
+    {\dmc_format_two_digits:n}
 
     % =================================================
-    % Leap
+    % Longest leap and era tokens
     % =================================================
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {lmi} {leap_month} {\dmc_format_bool_to_int:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {ldi} {leap_day} {\dmc_format_bool_to_int:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {li}  {leap} {\dmc_format_bool_to_int:n}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {lmi} {leap_month}
+    {\dmc_format_bool_to_int:n}
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {lm} {leap_month} {}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {ld} {leap_day} {}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {l}  {leap} {}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ldi} {leap_day}
+    {\dmc_format_bool_to_int:n}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {lui} {luang}
+    {\dmc_format_bool_to_int:n}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {Gi} {era}
+    {\dmc_format_japanese_era:n}
 
     % =================================================
-    % Month
+    % Two-character leap tokens
+    % =================================================
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {li} {leap}
+    {\dmc_format_bool_to_int:n}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {lm} {leap_month}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ld} {leap_day}
+    {}
+
+    % =================================================
+    % Maya Long Count
+    %
+    % lui must precede ui.
+    % =================================================
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {bt} {baktun}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ka} {katun}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {tn} {tun}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ui} {uinal}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ki} {kin}
+    {}
+
+    % =================================================
+    % Balinese cycles
+    %
+    % lui has already been replaced above.
+    % =================================================
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {lu} {luang}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {di} {dwiwara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {tr} {triwara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {cw} {caturwara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {pw} {pancawara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {sw} {sadwara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {sp} {saptawara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {aw} {asatawara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {sg} {sangawara}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {da} {dasawara}
+    {}
+
+    % =================================================
+    % Month names and numeric month
     % =================================================
 
     \ifdmc@persian
-        \dmc_format_replace_two:nnnnn {#1} {#2} {MMMMP} {month} {\dmc_format_month_persian:nn}
+        \dmc_format_replace_two:nnnnn
+        {#1} {#2} {MMMMP} {month}
+        {\dmc_format_month_persian:nn}
     \fi
 
-    \dmc_format_replace_two:nnnnn {#1} {#2} {MMMM} {month} {\dmc_format_month_name:nn}
-    \dmc_format_replace_two:nnnnn {#1} {#2} {MMM} {month} {\dmc_format_month_abbrev:nn}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {MM} {month} {\dmc_format_two_digits:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {M} {month} {}
+    \dmc_format_replace_two:nnnnn
+    {#1} {#2} {MMMM} {month}
+    {\dmc_format_month_name:nn}
+
+    \dmc_format_replace_two:nnnnn
+    {#1} {#2} {MMM} {month}
+    {\dmc_format_month_abbrev:nn}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {MM} {month}
+    {\dmc_format_two_digits:n}
 
     % =================================================
     % Day
     % =================================================
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {dd} {day} {\dmc_format_two_digits:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {d} {day} {}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {dd} {day}
+    {\dmc_format_two_digits:n}
 
     % =================================================
     % Week
     % =================================================
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {ww} {week} {\dmc_format_two_digits:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {w} {week} {}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {ww} {week}
+    {\dmc_format_two_digits:n}
 
     % =================================================
-    % Weekday
+    % Weekday names
     % =================================================
 
     \ifdmc@persian
-        \dmc_format_replace_one:nnnnn {#1} {#2} {EEEEP} {weekday} {\dmc_weekday_persian:n}
+        \dmc_format_replace_one:nnnnn
+        {#1} {#2} {EEEEP} {weekday}
+        {\dmc_weekday_persian:n}
     \fi
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {u} {weekday} {}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {EEEE} {weekday} {\dmc_weekday_name:n}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {EEE} {weekday} {\dmc_weekday_abbrev:n}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {EEEE} {weekday}
+    {\dmc_weekday_name:n}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {EEE} {weekday}
+    {\dmc_weekday_abbrev:n}
 
     % =================================================
     % Major and cycle
     % =================================================
 
-    \dmc_format_replace_one:nnnnn {#1} {#2} {R} {major} {}
-    \dmc_format_replace_one:nnnnn {#1} {#2} {U} {cycle} {}
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {R} {major}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {U} {cycle}
+    {}
+
+    % =================================================
+    % Remaining one-character tokens
+    % =================================================
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {y} {year}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {l} {leap}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {M} {month}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {d} {day}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {w} {week}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {u} {weekday}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {N} {name}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {S} {season}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {G} {era}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {E} {event}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {C} {count}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {p} {prefix}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {s} {stem}
+    {}
+
+    \dmc_format_replace_one:nnnnn
+    {#1} {#2} {n} {number}
+    {}
 
     % =================================================
     % Output
@@ -311,6 +511,8 @@
 
     \group_end:
 }
+
+
 
 
 % =================================================
@@ -409,18 +611,28 @@
 \dmcstyle{shbritish}{dd/MM/yy}
 \dmcstyle{shbritishdots}{dd.MM.yy}
 
+
 % =================================================
-% Standard date styles for nonstandard calender
+% Standard date styles for nonstandard calendars
 % =================================================
 
+\dmcstyle[akan]{short}{p/s}
+\dmcstyle[aztec-tonalpohualli,mayan-tzolkin]{short}{n/N}
+\dmcstyle[aztec-xihuitl,mayan-haab]{short}{MM/dd}
+\dmcstyle[babylonian,old-hindu-lunar]{short}{yy/MM/li/dd}
+\dmcstyle[bahai,bahai-astronomical]{short}{R/U/yy/MM/dd}
+\dmcstyle[balinese]{short}{lui/di/tr/cw/pw/sw/sp/aw/sg/da}
+\dmcstyle[chinese,japanese,vietnamese]{short}{U/yy/MM/li/dd}
+\dmcstyle[hindu-lunar,hindu-lunar-astronomical,tibetan]{short}{yy/MM/lmi/dd/ldi}
+\dmcstyle[icelandic]{short}{yy/S/ww/u}
 \dmcstyle[iso]{short}{yy/ww/dd}
-\dmcstyle[mayan_haab,aztec_xihuitl]{short}{MM/dd}
-
-\dmcstyle[korean,old_hindu_lunar,babylonian]{short}{yy/MM/li/dd}
-\dmcstyle[hindu_lunar,hindu_lunar_astronomical,tibetan]{short}{yy/MM/lmi/dd/ldi}
-\dmcstyle[bahai,bahai_astronomical]{short}{R/U/yy/MM/dd}
-\dmcstyle[chinese,japanese]{short}{U/yy/MM/li/dd}
+\dmcstyle[japanese-era]{short}{Gi/yy/MM/dd}
+\dmcstyle[korean]{short}{yy/MM/li/dd}
+\dmcstyle[mayan-long-count]{short}{bt/ka/tn/ui/ki}
 \dmcstyle[olympiad]{short}{U/yy/MM/dd}
+\dmcstyle[roman]{short}{yy/MM/E/C/li}
+
+
 
 
 % =================================================

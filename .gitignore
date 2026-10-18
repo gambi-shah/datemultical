@@ -13,3 +13,6 @@ __pycache__/
 *.xdv
 indent.log
 _minted/
+
+# Root-level text files
+/*.txt

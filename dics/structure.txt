@@ -100,3 +100,7 @@ cal_balinese
 Balinese Pawukon calendar (read-only). Granularities: `luang`, `dwiwara`, `triwara`, `caturwara`, `pancawara`, `sadwara`, `saptawara`, `asatawara`, `sangawara`, `dasawara`. The Pawukon cycle does not uniquely determine a fixed date.
 cal_akan
 Akan day-name cycle (read-only). Granularities: `prefix`, `stem`. The Akan name does not uniquely determine a fixed date.
+
+japanese-era
+
+era, year, month, day
